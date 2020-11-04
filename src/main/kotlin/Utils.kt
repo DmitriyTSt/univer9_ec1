@@ -87,7 +87,7 @@ object Utils {
 
     fun isSqrResidue(b: Long, p: Long): Boolean {
         val pow = b.pow((p - 1) / 2, p)
-        return pow == 1L || pow == p - 1
+        return pow == 1L
     }
 
     fun isCubeResidue(b: Long, p: Long): Boolean? {

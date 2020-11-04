@@ -78,18 +78,18 @@ fun solve(p: Long?, m: Int): Result? {
             // проверка b - квадратичный НЕвычет и кубический вычет для n == 2r
             2L -> Utils.isSqrResidue(b, n) == false && Utils.isCubeResidue(b, r) == true
             // проверка b - квадратичный вычет и кубический НЕвычет для n == 3r
-            3L -> Utils.isSqrResidue(b, r) == true && Utils.isSqrResidue(b, 3) == true && Utils.isCubeResidue(b, r) == false
+            3L -> Utils.isSqrResidue(b, r) == true &&
+                    Utils.isSqrResidue(b, 3) == true && Utils.isCubeResidue(b, r) == false
             else -> false
         }
         if (checkB) {
             // проверка N * point = P(inf) (знаменатель углового коэф в формуле сложения обращается в 0)
             val newP = point * n
             logd("n * point = $newP")
-            // иначе generatePoint()
-
-            val q = point * (n / r)
-
-            result = Result(p, b, q, r)
+            if (newP.inf) {
+                val q = point * (n / r)
+                result = Result(p, b, q, r)
+            }
         }
     }
 

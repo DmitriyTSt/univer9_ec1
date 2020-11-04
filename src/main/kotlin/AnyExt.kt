@@ -1,3 +1,6 @@
+import java.math.BigInteger
+import kotlin.random.Random
+
 fun Long.pow(pow: Long, mod: Long): Long {
     var result = 1L
     for (i in 1 .. pow) {

@@ -1,7 +1,9 @@
+import java.math.BigInteger
+
 data class Point(
-        val x: Long,
-        val y: Long,
-        val mod: Long,
+        val x: BigInteger,
+        val y: BigInteger,
+        val mod: BigInteger,
         val inf: Boolean = false
 ) {
     override fun toString(): String {
@@ -13,13 +15,13 @@ data class Point(
         if (this.inf) {
             return p
         }
-        if ((this == p && p.y == 0L) || (this != p && this.x == p.x)) {
-            return Point(0, 0, mod, true)
+        if ((this == p && p.y == BigInteger.ZERO) || (this != p && this.x == p.x)) {
+            return Point(BigInteger.ZERO, BigInteger.ZERO, mod, true)
         }
         val a = if (this == p) {
-            ((3 * this.x * this.x) * extendedGcd(2 * this.y, mod).second.module()).module()
+            ((3.toBigInteger() * this.x * this.x) * (2.toBigInteger() * this.y).modInverse(mod)).module()
         } else {
-            ((p.y - this.y).module() * extendedGcd((p.x - this.x).module(), mod).second.module()).module()
+            ((p.y - this.y).module() * (p.x - this.x).modInverse(mod)).module()
         }
 
         val x = (a * a - p.x - this.x).module()
@@ -52,13 +54,13 @@ data class Point(
         return Triple(r1, x1, y1)
     }
 
-    private fun Long.module(): Long {
+    private fun BigInteger.module(): BigInteger {
         return (this % mod + mod) % mod
     }
 
-    operator fun times(a: Long): Point {
+    operator fun times(a: BigInteger): Point {
         val binary = a.toString(2).reversed()
-        var result = Point(0, 0, mod, true)
+        var result = Point(BigInteger.ZERO, BigInteger.ZERO, mod, true)
         var addEnd = this
         binary.forEach {
             if (it == '1') {

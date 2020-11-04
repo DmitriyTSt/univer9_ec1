@@ -1,3 +1,6 @@
+import org.knowm.xchart.*
+import org.knowm.xchart.XYSeries.XYSeriesRenderStyle
+import java.math.BigInteger
 import kotlin.system.exitProcess
 
 /**
@@ -18,6 +21,7 @@ fun main() {
     val timeAll = System.currentTimeMillis() - timeStart
     println("Time spent: %d.%03d s".format(timeAll / 1000, timeAll % 1000))
     println("Result:\n$result")
+    showChart(result)
 }
 
 private fun readInt(): Int {
@@ -30,17 +34,17 @@ private fun readInt(): Int {
 }
 
 class Result(
-        val p: Long,
-        val b: Long,
+        val p: BigInteger,
+        val b: BigInteger,
         val q: Point,
-        val r: Long
+        val r: BigInteger
 ) {
     override fun toString(): String {
         return "p = $p\nb = $b\nq = $q\nr = $r"
     }
 }
 
-fun solve(p: Long?, m: Int): Result? {
+fun solve(p: BigInteger?, m: Int): Result? {
     if (p == null) {
         println("Для заданного l решение не найдено")
         exitProcess(0)
@@ -57,7 +61,7 @@ fun solve(p: Long?, m: Int): Result? {
     if (p == r) return null
     var pp = p
     repeat(m) {
-        if (pp % r == 1L) {
+        if (pp % r == BigInteger.ONE) {
             return null
         }
         pp *= p
@@ -72,14 +76,14 @@ fun solve(p: Long?, m: Int): Result? {
         logd("($x0, $y0) b = $b")
         val checkB = when (n / r) {
             // проверка b - квадратичный и кубический НЕвычет для n == r
-            1L -> Utils.isSqrResidue(b, n) == false && Utils.isCubeResidue(b, r) == false
+            1.toBigInteger() -> !Utils.isSqrResidue(b, n) && Utils.isCubeResidue(b, r) == false
             // проверка b - квадратичный и кубический вычет для n == 6r
-            6L -> Utils.isSqrResidue(b, n) == true && Utils.isCubeResidue(b, r) == true
+            6.toBigInteger() -> Utils.isSqrResidue(b, n) && Utils.isCubeResidue(b, r) == true
             // проверка b - квадратичный НЕвычет и кубический вычет для n == 2r
-            2L -> Utils.isSqrResidue(b, n) == false && Utils.isCubeResidue(b, r) == true
+            2.toBigInteger() -> !Utils.isSqrResidue(b, n) && Utils.isCubeResidue(b, r) == true
             // проверка b - квадратичный вычет и кубический НЕвычет для n == 3r
-            3L -> Utils.isSqrResidue(b, r) == true &&
-                    Utils.isSqrResidue(b, 3) == true && Utils.isCubeResidue(b, r) == false
+            3.toBigInteger() -> Utils.isSqrResidue(b, r) &&
+                    Utils.isSqrResidue(b, 3.toBigInteger()) && Utils.isCubeResidue(b, r) == false
             else -> false
         }
         if (checkB) {
@@ -94,4 +98,35 @@ fun solve(p: Long?, m: Int): Result? {
     }
 
     return result
+}
+
+fun showChart(result: Result) {
+    if (result.p.bitLength() < 60) {
+        var start = result.q
+        val xData = mutableListOf<Long>()
+        val yData = mutableListOf<Long>()
+        do {
+            xData.add(start.x.toLong())
+            yData.add(start.y.toLong())
+            start += result.q
+        } while (start != result.q)
+
+        val chart: XYChart = XYChartBuilder()
+                .width(1300)
+                .height(900)
+                .title("Elliptic")
+                .xAxisTitle("X")
+                .yAxisTitle("Y")
+                .build()
+        chart.styler.apply {
+            defaultSeriesRenderStyle = XYSeriesRenderStyle.Scatter
+            isChartTitleVisible = false
+            isLegendVisible = false
+            markerSize = 2
+        }
+        chart.addSeries("Elliptic 1", xData, yData)
+        SwingWrapper(chart).displayChart()
+    } else {
+        println("p = ${result.p}\nСлишком большое!")
+    }
 }

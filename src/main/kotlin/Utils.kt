@@ -1,18 +1,19 @@
-import kotlin.math.pow
-import kotlin.math.sqrt
+import java.math.BigInteger
 import kotlin.random.Random
 
 object Utils {
     const val DEBUG = false
-    const val MOD = 6L
+    private val MOD = 6.toBigInteger()
+    private val random = java.util.Random()
 
-    fun generatePrimeP(bits: Int, lastBad: Long?): Long? {
-        var start = 2.0.pow((bits - 1).toDouble()).toLong()
-        val end = start * 2
-        while (start % MOD != 1L) {
+    fun generatePrimeP(bits: Int, lastBad: BigInteger?): BigInteger? {
+        var start = 2.toBigInteger()
+        start = start.pow((bits - 1))
+        val end = start * 2.toBigInteger()
+        while (start % MOD != BigInteger.ONE) {
             start++
         }
-        while (!isPrime(start) || start <= lastBad ?: 0) {
+        while (!isPrime(start) || start <= lastBad ?: BigInteger.ZERO) {
             start += MOD
         }
         if (start >= end) {
@@ -22,22 +23,17 @@ object Utils {
         }
     }
 
-    private fun isPrime(p: Long): Boolean {
-        for (i in 2..sqrt(p.toDouble()).toInt()) {
-            if (p % i == 0L) {
-                return false
-            }
-        }
-        return true
+    private fun isPrime(p: BigInteger): Boolean {
+        return p.isProbablePrime(128)
     }
 
-    fun getCD(p: Long): Pair<Long, Long>? {
-        val sqrtP = sqrt(p.toDouble()).toLong()
-        var c = 1L
+    fun getCD(p: BigInteger): Pair<BigInteger, BigInteger>? {
+        val sqrtP = p / 2.toBigInteger()
+        var c = BigInteger.ONE
         while (c < sqrtP) {
-            var d = 1L
+            var d = BigInteger.ONE
             while (d < sqrtP) {
-                if (c * c + 3 * d * d == p) {
+                if (c * c + 3.toBigInteger() * d * d == p) {
                     return c to d
                 }
                 d++
@@ -47,25 +43,29 @@ object Utils {
         return null
     }
 
-    fun getNR(p: Long, c: Long, d: Long): Pair<Long, Long>? {
-        val tArr = listOf(c + 3 * d, c - 3 * d, 2 * c).flatMap { listOf(it, -it) }
+    fun getNR(p: BigInteger, c: BigInteger, d: BigInteger): Pair<BigInteger, BigInteger>? {
+        val tArr = listOf(
+                c + 3.toBigInteger() * d,
+                c - 3.toBigInteger() * d,
+                2.toBigInteger() * c
+        ).flatMap { listOf(it, -it) }
         logd("T = $tArr")
-        val div = listOf(1, 2, 3, 6)
+        val div = listOf(1, 2, 3, 6).map { it.toBigInteger() }
         val nr = tArr.flatMap { t ->
-            val n = p + 1 + t
-            div.filter { n % it == 0L && isPrime(n / it) }.map { n to (n / it) }
+            val n = p + BigInteger.ONE + t
+            div.filter { n % it == BigInteger.ZERO && isPrime(n / it) }.map { n to (n / it) }
         }
         return nr.firstOrNull()
     }
 
-    fun generatePoint(p: Long): Point {
-        var x0 = Random.nextLong(p)
-        while (x0 == 0L) {
-            x0 = Random.nextLong(p)
+    fun generatePoint(p: BigInteger): Point {
+        var x0 = Random.nextBigInteger(p)
+        while (x0 == BigInteger.ZERO) {
+            x0 = Random.nextBigInteger(p)
         }
-        var y0 = Random.nextLong(p)
-        while (y0 == 0L) {
-            y0 = Random.nextLong(p)
+        var y0 = Random.nextBigInteger(p)
+        while (y0 == BigInteger.ZERO) {
+            y0 = Random.nextBigInteger(p)
         }
         return Point(x0, y0, p)
     }
@@ -85,18 +85,22 @@ object Utils {
 //        }
 //    }
 
-    fun isSqrResidue(b: Long, p: Long): Boolean {
-        val pow = b.pow((p - 1) / 2, p)
-        return pow == 1L
+    fun isSqrResidue(b: BigInteger, p: BigInteger): Boolean {
+        val pow = b.modPow((p - 1.toBigInteger()) / 2.toBigInteger(), p)
+        return pow == 1.toBigInteger()
     }
 
-    fun isCubeResidue(b: Long, p: Long): Boolean? {
-        if ((p - 1) % 3 == 0L) {
-            return b.pow((p-1) / 3, p) % p == 1L
-        } else if ((p - 1) % 3 == 2L) {
+    fun isCubeResidue(b: BigInteger, p: BigInteger): Boolean? {
+        if ((p - 1.toBigInteger()) % 3.toBigInteger() == BigInteger.ZERO) {
+            return b.modPow((p - 1.toBigInteger()) / 3.toBigInteger(), p) % p == 1.toBigInteger()
+        } else if ((p - 1.toBigInteger()) % 3.toBigInteger() == 2.toBigInteger()) {
             return true
         } else {
             return null
         }
+    }
+
+    private fun Random.Default.nextBigInteger(p: BigInteger): BigInteger {
+        return BigInteger(p.bitLength(), random) % p
     }
 }

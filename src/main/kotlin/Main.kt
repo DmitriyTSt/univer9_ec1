@@ -12,8 +12,11 @@ fun main() {
     println("Введите m")
     val m = readInt()
     val timeStart = System.currentTimeMillis()
+    // находим первое возможное p
     var p = Utils.generatePrimeP(l, null)
+    // пытаемся решить с ним
     var result = solve(p, m)
+    // если решений нет, то перегенерируем p и решаем до тех пор, пока не найдем, или не переберем все p заданной длины
     while (result == null) {
         p = Utils.generatePrimeP(l, p)
         result = solve(p, m)
@@ -24,6 +27,9 @@ fun main() {
     showChart(result)
 }
 
+/**
+ * Умное чтение числа из консоли
+ */
 private fun readInt(): Int {
     var int = readLine()?.toIntOrNull()
     while (int == null) {
@@ -33,6 +39,12 @@ private fun readInt(): Int {
     return int
 }
 
+/**
+ * Эллиптическая кривая в поле p
+ * @param p
+ * @param q - образующая порядка r
+ * @param r
+ */
 class Result(
         val p: BigInteger,
         val b: BigInteger,
@@ -44,20 +56,27 @@ class Result(
     }
 }
 
+/**
+ * Построение кривой, если хотя бы один пункт не соответствует проверкам, возвращаем null и идем за новым p
+ */
 fun solve(p: BigInteger?, m: Int): Result? {
+    // если возможное p вылетело за границу размера, то решений нет
     if (p == null) {
         println("Для заданного l решение не найдено")
         exitProcess(0)
     }
     logd("p = $p")
+    // вычисление разложения c^2 + d^2 = p в sqrt(-d) (Ростовцев, 15.3.1, п 2)
     val cd = CDSqr.get(p, 3.toBigInteger()) ?: return null
     val c = cd.first
     val d = cd.second
     logd("$p = ($c)^2 + 3*($d)^2,    c = $c, d = $d")
+    // нахождение чисел N r (Ростовцев, 15.3.1, п 3)
     val nr = Utils.getNR(p, c, d) ?: return null
     val n = nr.first
     val r = nr.second
     logd("N = $n, r = $r")
+    // проверки на отношение p и r, при неудаче - перегенерируем (Ростовцев, 15.3.1, п 4)
     if (p == r) return null
     var pp = p
     repeat(m) {
@@ -68,6 +87,8 @@ fun solve(p: BigInteger?, m: Int): Result? {
     }
     logd("p != r, p^i != 1 (mod r)")
     var result: Result?  = null
+    // нашли нужные n r, генерируем точку и пытаемся проверить созданную точку b из произвольной точки
+    // (Ростовцев, 15.3.1, п 5)
     while (result == null) {
         val point = Utils.generatePoint(p)
         val x0 = point.x
@@ -86,12 +107,17 @@ fun solve(p: BigInteger?, m: Int): Result? {
                     Utils.isSqrResidue(b, 3.toBigInteger()) && Utils.isCubeResidue(b, r) == false
             else -> false
         }
+        // если прошли проверку B, то проходим проверку на произведение точки на число, иначе result останется null
+        // и будет сгенерирована новая произвольная точка
         if (checkB) {
             // проверка N * point = P(inf) (знаменатель углового коэф в формуле сложения обращается в 0)
+            // (Ростовцев, 15.3.1, п 6)
             val newP = point * n
             logd("n * point = $newP")
             if (newP.inf) {
+                // вычисляем Q (Ростовцев, 15.3.1, п 7)
                 val q = point * (n / r)
+                // нашли удовлетворяющий нас результат
                 result = Result(p, b, q, r)
             }
         }
@@ -100,6 +126,9 @@ fun solve(p: BigInteger?, m: Int): Result? {
     return result
 }
 
+/**
+ * Построение найденной эллиптической кривой (только для чисел меньше 20 бит)
+ */
 fun showChart(result: Result) {
     if (result.p.bitLength() < 20) {
         var start = result.q

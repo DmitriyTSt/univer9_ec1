@@ -101,7 +101,7 @@ fun solve(p: BigInteger?, m: Int): Result? {
 }
 
 fun showChart(result: Result) {
-    if (result.p.bitLength() < 60) {
+    if (result.p.bitLength() < 20) {
         var start = result.q
         val xData = mutableListOf<Long>()
         val yData = mutableListOf<Long>()
@@ -127,6 +127,6 @@ fun showChart(result: Result) {
         chart.addSeries("Elliptic 1", xData, yData)
         SwingWrapper(chart).displayChart()
     } else {
-        println("p = ${result.p}\nСлишком большое!")
+        println("p = ${result.p}\nСлишком большое, чтобы нарисовать график, график рисуется для l < 20")
     }
 }

@@ -50,7 +50,7 @@ fun solve(p: BigInteger?, m: Int): Result? {
         exitProcess(0)
     }
     logd("p = $p")
-    val cd = Utils.getCD(p) ?: return null
+    val cd = CDSqr.get(p, 3.toBigInteger()) ?: return null
     val c = cd.first
     val d = cd.second
     logd("$p = ($c)^2 + 3*($d)^2,    c = $c, d = $d")

@@ -27,22 +27,6 @@ object Utils {
         return p.isProbablePrime(128)
     }
 
-    fun getCD(p: BigInteger): Pair<BigInteger, BigInteger>? {
-        val sqrtP = p / 2.toBigInteger()
-        var c = BigInteger.ONE
-        while (c < sqrtP) {
-            var d = BigInteger.ONE
-            while (d < sqrtP) {
-                if (c * c + 3.toBigInteger() * d * d == p) {
-                    return c to d
-                }
-                d++
-            }
-            c++
-        }
-        return null
-    }
-
     fun getNR(p: BigInteger, c: BigInteger, d: BigInteger): Pair<BigInteger, BigInteger>? {
         val tArr = listOf(
                 c + 3.toBigInteger() * d,
@@ -68,13 +52,6 @@ object Utils {
             y0 = Random.nextBigInteger(p)
         }
         return Point(x0, y0, p)
-    }
-
-    /**
-     * Вычисление символа Лежандра
-     */
-    private fun L(a: Long, p: Long): Int {
-        return Legendre.get(a, p)
     }
 
 //    fun isSqrResidue(b: Long, p: Long): Boolean? {

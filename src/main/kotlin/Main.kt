@@ -1,5 +1,6 @@
 import org.knowm.xchart.*
 import org.knowm.xchart.XYSeries.XYSeriesRenderStyle
+import java.io.File
 import java.math.BigInteger
 import kotlin.system.exitProcess
 
@@ -127,18 +128,26 @@ fun solve(p: BigInteger?, m: Int): Result? {
 }
 
 /**
- * Построение найденной эллиптической кривой (только для чисел меньше 20 бит)
+ * Построение найденной эллиптической кривой и вывод точек в файл (только для чисел меньше 20 бит)
  */
 fun showChart(result: Result) {
     if (result.p.bitLength() < 20) {
         var start = result.q
         val xData = mutableListOf<Long>()
         val yData = mutableListOf<Long>()
+        val points = mutableListOf<String>()
+
         do {
-            xData.add(start.x.toLong())
-            yData.add(start.y.toLong())
+            if (!start.inf) {
+                xData.add(start.x.toLong())
+                yData.add(start.y.toLong())
+            }
+            points.add(start.toString())
             start += result.q
         } while (start != result.q)
+
+        val pointsFile = File("points.txt")
+        pointsFile.writeText(points.joinToString("\n"))
 
         val chart: XYChart = XYChartBuilder()
                 .width(1300)
@@ -151,10 +160,11 @@ fun showChart(result: Result) {
             defaultSeriesRenderStyle = XYSeriesRenderStyle.Scatter
             isChartTitleVisible = false
             isLegendVisible = false
-            markerSize = 2
+            markerSize = 10
         }
         chart.addSeries("Elliptic 1", xData, yData)
         SwingWrapper(chart).displayChart()
+        println("Точки выведены в файл ${pointsFile.absolutePath}")
     } else {
         println("p = ${result.p}\nСлишком большое, чтобы нарисовать график, график рисуется для l < 20")
     }

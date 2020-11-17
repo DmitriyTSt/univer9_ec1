@@ -9,24 +9,46 @@ object Utils {
 
     private val random = java.util.Random()
 
+    private var badCount = -1
+
     /**
      * Генерация простого p, удовлетворяющего условия задания (Ростовцев, 15.3.1, п 1)
      */
     fun generatePrimeP(bits: Int, lastBad: BigInteger?): BigInteger? {
+        badCount++
+        val probablyPArr = getPArray(bits)
+        if (probablyPArr.isEmpty()) {
+            // если нет подходящих, то нельхя сгенерировать
+            return null
+        }
+        if (badCount > 2 * probablyPArr.size) {
+            // если попробовали в 2 раза больше, чем сам массив, то видимо, сгенерировать по условиям не получится
+            // умножение на 2 с учетом случайного выбора из массива
+            return null
+        }
+        // берем случайную P из массива подходящих
+        val randomPosition = Random.nextInt(0, probablyPArr.size)
+        return probablyPArr[randomPosition]
+    }
+
+    /**
+     * @return Все возможные P для заданного количества бит
+     */
+    private fun getPArray(bits: Int): List<BigInteger> {
+        val ans = mutableListOf<BigInteger>()
         var start = 2.toBigInteger()
         start = start.pow((bits - 1))
         val end = start * 2.toBigInteger()
         while (start % MOD != BigInteger.ONE) {
             start++
         }
-        while (!isPrime(start) || start <= lastBad ?: BigInteger.ZERO) {
+        while (start < end) {
+            if (isPrime(start)) {
+                ans.add(start)
+            }
             start += MOD
         }
-        if (start >= end) {
-            return null
-        } else {
-            return start
-        }
+        return ans
     }
 
     /**

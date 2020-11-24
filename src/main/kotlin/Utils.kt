@@ -9,46 +9,22 @@ object Utils {
 
     private val random = java.util.Random()
 
-    private var badCount = -1
+    /** Прошлые неудачные подборы */
+    private var badsP = mutableListOf<BigInteger>()
 
     /**
      * Генерация простого p, удовлетворяющего условия задания (Ростовцев, 15.3.1, п 1)
      */
     fun generatePrimeP(bits: Int, lastBad: BigInteger?): BigInteger? {
-        badCount++
-        val probablyPArr = getPArray(bits)
-        if (probablyPArr.isEmpty()) {
-            // если нет подходящих, то нельхя сгенерировать
-            return null
-        }
-        if (badCount > 2 * probablyPArr.size) {
-            // если попробовали в 2 раза больше, чем сам массив, то видимо, сгенерировать по условиям не получится
-            // умножение на 2 с учетом случайного выбора из массива
-            return null
-        }
-        // берем случайную P из массива подходящих
-        val randomPosition = Random.nextInt(0, probablyPArr.size)
-        return probablyPArr[randomPosition]
-    }
+        lastBad?.let { badsP.add(it) }
+        var prime = BigInteger.probablePrime(bits, java.util.Random())
 
-    /**
-     * @return Все возможные P для заданного количества бит
-     */
-    private fun getPArray(bits: Int): List<BigInteger> {
-        val ans = mutableListOf<BigInteger>()
-        var start = 2.toBigInteger()
-        start = start.pow((bits - 1))
-        val end = start * 2.toBigInteger()
-        while (start % MOD != BigInteger.ONE) {
-            start++
+        // Генерируем пока получили старое значение или пока не выполнено условие
+        while (badsP.contains(prime) || prime % MOD != BigInteger.ONE) {
+            prime = BigInteger.probablePrime(bits, java.util.Random())
         }
-        while (start < end) {
-            if (isPrime(start)) {
-                ans.add(start)
-            }
-            start += MOD
-        }
-        return ans
+
+        return prime
     }
 
     /**

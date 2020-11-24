@@ -8,8 +8,12 @@ import kotlin.system.exitProcess
  * Генерация эллиптической кривой с j = 0
  */
 fun main() {
-    println("Введите l")
-    val l = readInt()
+    println("Введите l >= 3 (для существования p)")
+    var l = readInt()
+    while (l < 3) {
+        println("Введите l >= 3 (для существования p)")
+        l = readInt()
+    }
     println("Введите m")
     val m = readInt()
     val timeStart = System.currentTimeMillis()
@@ -115,7 +119,7 @@ fun solve(p: BigInteger?, m: Int): Result? {
             // (Ростовцев, 15.3.1, п 6)
             val newP = point * n
             logd("n * point = $newP")
-            if (newP.inf) {
+            if (newP.coord == null) {
                 // вычисляем Q (Ростовцев, 15.3.1, п 7)
                 val q = point * (n / r)
                 // нашли удовлетворяющий нас результат
@@ -138,7 +142,7 @@ fun showChart(result: Result) {
         val points = mutableListOf<String>()
 
         do {
-            if (!start.inf) {
+            if (start.coord != null) {
                 xData.add(start.x.toLong())
                 yData.add(start.y.toLong())
             }
